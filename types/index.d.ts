@@ -7,12 +7,15 @@ interface Job {
 
 interface Resume {
   id: string;
+  candidateName?: string;
   companyName?: string;
   jobTitle?: string;
   imagePath: string;
   resumePath: string;
   feedback: Feedback;
+  issuedAt: string; // <-- nouvelle propriété pour la date d’émission
 }
+
 
 interface Feedback {
   overallScore: number;
