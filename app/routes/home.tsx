@@ -166,24 +166,24 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Pagination */}
-            <div className="pagination flex items-center justify-center gap-2 mt-6">
+            {/* ✅ Nouvelle Pagination Moderne */}
+            <div className="pagination flex items-center justify-center gap-2 mt-8 flex-wrap">
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                &laquo; Précédent
+                «
               </button>
 
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-1 rounded transition ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition shadow-sm ${
                     page === currentPage
-                      ? "bg-blue-600 text-white shadow-lg"
-                      : "bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white"
+                      ? "bg-blue-600 text-white shadow-md scale-105"
+                      : "bg-gray-100 text-gray-700 hover:bg-blue-500 hover:text-white"
                   }`}
                 >
                   {page}
@@ -193,9 +193,9 @@ export default function Home() {
               <button
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Suivant &raquo;
+                »
               </button>
             </div>
           </>
