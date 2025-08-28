@@ -113,6 +113,8 @@ export default function Home() {
 
       <section className="main-section">
         <div className="page-heading py-16 text-center">
+
+
           <h1 className="text-3xl font-bold">Track Your Best Candidates & Resume Ratings</h1>
           {!loadingResumes && resumes.length === 0 ? (
             <h2 className="mt-2 text-gray-600">
@@ -126,26 +128,40 @@ export default function Home() {
         </div>
 
         {/* 🔍 Zone de recherche */}
-        <div className="flex flex-col md:flex-row gap-4 justify-center mb-6">
-          <input
-            type="text"
-            placeholder="Search by candidate name..."
-            value={searchName}
-            onChange={(e) => {
-              setSearchName(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
-          />
-          <input
-            type="date"
-            value={searchDate}
-            onChange={(e) => {
-              setSearchDate(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
-          />
+        {/* 🔍 Zone de recherche modernisée */}
+        <div className="flex flex-col md:flex-row gap-4 justify-center mb-10 px-4">
+          {/* Recherche par nom */}
+          <div className="relative w-full md:w-80">
+    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+      🔎
+    </span>
+            <input
+              type="text"
+              placeholder="Search by candidate name..."
+              value={searchName}
+              onChange={(e) => {
+                setSearchName(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-4 py-3 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-700"
+            />
+          </div>
+
+          {/* Recherche par date */}
+          <div className="relative w-full md:w-60">
+    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+      📅
+    </span>
+            <input
+              type="date"
+              value={searchDate}
+              onChange={(e) => {
+                setSearchDate(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-4 py-3 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-700"
+            />
+          </div>
         </div>
 
         {loadingResumes && (
@@ -166,7 +182,7 @@ export default function Home() {
               ))}
             </div>
 
-            {/* ✅ Nouvelle Pagination Moderne */}
+            {/* ✅ Pagination */}
             <div className="pagination flex items-center justify-center gap-2 mt-8 flex-wrap">
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}

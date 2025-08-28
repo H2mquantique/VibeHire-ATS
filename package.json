@@ -12,7 +12,10 @@
     "@react-router/node": "^7.7.1",
     "@react-router/serve": "^7.7.1",
     "clsx": "^2.1.1",
+    "file-saver": "^2.0.5",
+    "html2canvas": "^1.4.1",
     "isbot": "^5.1.27",
+    "jspdf": "^3.0.2",
     "lucide-react": "^0.539.0",
     "pdf2img": "^0.5.0",
     "pdfjs-dist": "^5.3.93",
@@ -25,8 +28,10 @@
     "zustand": "^5.0.7"
   },
   "devDependencies": {
+    "@react-pdf/renderer": "^4.3.0",
     "@react-router/dev": "^7.7.1",
     "@tailwindcss/vite": "^4.1.4",
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^20",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
