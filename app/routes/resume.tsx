@@ -32,8 +32,8 @@ type Category = {
   tips: { type: "good" | "improve"; tip: string; explanation?: string }[];
 };
 
-// --- PDF Component modernisé ---
-const FeedbackPDF = ({ feedback }: { feedback: Feedback }) => {
+// --- PDF Component modernisé avec nom du candidat ---
+const FeedbackPDF = ({ feedback, candidateName }: { feedback: Feedback; candidateName: string }) => {
   const categories: [string, Category][] = [
     ["ATS Feedback", feedback.ATS],
     ["Tone & Style", feedback.toneAndStyle],
@@ -45,7 +45,7 @@ const FeedbackPDF = ({ feedback }: { feedback: Feedback }) => {
   return (
     <Document>
       <Page size="A4" style={pdfStyles.page}>
-        <Text style={pdfStyles.header}>Resume Review</Text>
+        <Text style={pdfStyles.header}>Resume Review - {candidateName}</Text>
         <Text style={{ marginBottom: 15 }}>Overall Score: {feedback.overallScore}/100</Text>
 
         {categories.map(([title, category], idx) => (
@@ -89,6 +89,7 @@ const Resume = () => {
   const [imageUrl, setImageUrl] = useState("");
   const [resumeUrl, setResumeUrl] = useState("");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [candidateName, setCandidateName] = useState<string>(""); // <-- Nom du candidat
   const navigate = useNavigate();
 
   // Redirection si non authentifié
@@ -104,6 +105,9 @@ const Resume = () => {
       if (!resume) return;
 
       const data: Resume = JSON.parse(resume);
+
+      // Set candidate name
+      setCandidateName(data.candidateName || "");
 
       const resumeBlob = await fs.read(data.resumePath);
       if (resumeBlob)
@@ -121,7 +125,7 @@ const Resume = () => {
   const handleDownloadPDF = async () => {
     if (!feedback) return;
 
-    const blob = await pdf(<FeedbackPDF feedback={feedback} />).toBlob();
+    const blob = await pdf(<FeedbackPDF feedback={feedback} candidateName={candidateName} />).toBlob();
     saveAs(blob, `resume-feedback-${id}.pdf`);
   };
 
@@ -152,7 +156,9 @@ const Resume = () => {
 
         {/* Feedback Section */}
         <section className="feedback-section p-8">
-          <h2 className="text-4xl !text-black font-bold mb-6">Resume Review</h2>
+          <h2 className="text-4xl !text-black font-bold mb-6">
+            Resume Review - {candidateName}
+          </h2>
           {feedback ? (
             <>
               <div className="flex flex-col gap-8 animate-in fade-in duration-1000">
@@ -167,7 +173,7 @@ const Resume = () => {
                   onClick={handleDownloadPDF}
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
-                  Download PDF
+                  Export Feedback as PDF
                 </button>
               </div>
             </>
