@@ -9,7 +9,6 @@ import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer
 import fileSaver from "file-saver";
 const { saveAs } = fileSaver;
 
-// --- PDF Styles ---
 const pdfStyles = StyleSheet.create({
   page: { padding: 25, fontFamily: "Helvetica", backgroundColor: "#fff" },
   header: { fontSize: 28, fontWeight: "bold", marginBottom: 20 },
@@ -22,19 +21,16 @@ const pdfStyles = StyleSheet.create({
   tipList: { marginLeft: 12 },
 });
 
-// --- Helper pour couleur score ---
 const getScoreColor = (score: number) =>
   score >= 80 ? "#4caf50" : score >= 50 ? "#ff9800" : "#f44336";
 
-// --- Typage Category pour TS ---
 type Category = {
   score: number;
   tips: { type: "good" | "improve"; tip: string; explanation?: string }[];
 };
 
-// --- PDF Component modernisé avec nom du candidat ---
 const FeedbackPDF = ({ feedback, candidateName }: { feedback: Feedback; candidateName: string }) => {
-  const categories: [string, Category][] = [
+  const categories: [string, Category | undefined][] = [
     ["ATS Feedback", feedback.ATS],
     ["Tone & Style", feedback.toneAndStyle],
     ["Content", feedback.content],
@@ -46,35 +42,35 @@ const FeedbackPDF = ({ feedback, candidateName }: { feedback: Feedback; candidat
     <Document>
       <Page size="A4" style={pdfStyles.page}>
         <Text style={pdfStyles.header}>Resume Review - {candidateName}</Text>
-        <Text style={{ marginBottom: 15 }}>Overall Score: {feedback.overallScore}/100</Text>
+        <Text style={{ marginBottom: 15 }}>Overall Score: {feedback.overallScore || 0}/100</Text>
 
         {categories.map(([title, category], idx) => (
           <View key={idx} style={{ marginBottom: 20 }}>
             <Text style={pdfStyles.sectionHeader}>{title}</Text>
-
-            {/* Barre de score */}
-            <View style={pdfStyles.scoreContainer}>
-              <View
-                style={[
-                  pdfStyles.scoreBar,
-                  { width: `${category.score}%`, backgroundColor: getScoreColor(category.score) },
-                ]}
-              />
-              <Text>Score: {category.score}/100</Text>
-            </View>
-
-            {/* Tips organisés sous forme de tirets avec icônes */}
-            <View style={pdfStyles.tipList}>
-              {category.tips.map((tip, tIdx) => {
-                const explanationText = tip.explanation ? ` (${tip.explanation})` : "";
-                return (
-                  <View style={pdfStyles.tipRow} key={tIdx}>
-                    <Text style={pdfStyles.tipIcon}>{tip.type === "good" ? "✔" : "⚠"}</Text>
-                    <Text style={pdfStyles.tipText}>- {tip.tip}{explanationText}</Text>
-                  </View>
-                );
-              })}
-            </View>
+            {category && (
+              <>
+                <View style={pdfStyles.scoreContainer}>
+                  <View
+                    style={[
+                      pdfStyles.scoreBar,
+                      { width: `${category.score}%`, backgroundColor: getScoreColor(category.score) },
+                    ]}
+                  />
+                  <Text>Score: {category.score}/100</Text>
+                </View>
+                <View style={pdfStyles.tipList}>
+                  {category.tips.map((tip, tIdx) => {
+                    const explanationText = tip.explanation ? ` (${tip.explanation})` : "";
+                    return (
+                      <View style={pdfStyles.tipRow} key={tIdx}>
+                        <Text style={pdfStyles.tipIcon}>{tip.type === "good" ? "✔" : "⚠"}</Text>
+                        <Text style={pdfStyles.tipText}>- {tip.tip}{explanationText}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </>
+            )}
           </View>
         ))}
       </Page>
@@ -82,23 +78,20 @@ const FeedbackPDF = ({ feedback, candidateName }: { feedback: Feedback; candidat
   );
 };
 
-// --- Composant Resume ---
 const Resume = () => {
   const { auth, isLoading, fs, kv } = usePuterStore();
   const { id } = useParams();
   const [imageUrl, setImageUrl] = useState("");
   const [resumeUrl, setResumeUrl] = useState("");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [candidateName, setCandidateName] = useState<string>(""); // <-- Nom du candidat
+  const [candidateName, setCandidateName] = useState<string>("");
   const navigate = useNavigate();
 
-  // Redirection si non authentifié
   useEffect(() => {
     if (!isLoading && !auth.isAuthenticated)
       navigate(`/auth?next=/resume/${id}`);
   }, [isLoading]);
 
-  // Chargement CV + feedback
   useEffect(() => {
     const loadResume = async () => {
       const resume = await kv.get(`resume:${id}`);
@@ -106,7 +99,6 @@ const Resume = () => {
 
       const data: Resume = JSON.parse(resume);
 
-      // Set candidate name
       setCandidateName(data.candidateName || "");
 
       const resumeBlob = await fs.read(data.resumePath);
@@ -116,15 +108,21 @@ const Resume = () => {
       const imageBlob = await fs.read(data.imagePath);
       if (imageBlob) setImageUrl(URL.createObjectURL(imageBlob));
 
-      setFeedback(data.feedback);
+      // ✅ Normalisation en cas de data corrompue
+      setFeedback({
+        overallScore: data.feedback?.overallScore || 0,
+        ATS: data.feedback?.ATS || { score: 0, tips: [] },
+        toneAndStyle: data.feedback?.toneAndStyle || { score: 0, tips: [] },
+        content: data.feedback?.content || { score: 0, tips: [] },
+        structure: data.feedback?.structure || { score: 0, tips: [] },
+        skills: data.feedback?.skills || { score: 0, tips: [] },
+      });
     };
     loadResume();
   }, [id]);
 
-  // --- Fonction pour générer et télécharger le PDF ---
   const handleDownloadPDF = async () => {
     if (!feedback) return;
-
     const blob = await pdf(<FeedbackPDF feedback={feedback} candidateName={candidateName} />).toBlob();
     saveAs(blob, `resume-feedback-${id}.pdf`);
   };
@@ -139,7 +137,6 @@ const Resume = () => {
       </nav>
 
       <div className="flex flex-row w-full max-lg:flex-col-reverse">
-        {/* CV Preview */}
         <section className="feedback-section bg-[url('/images/bg-small.svg')] bg-cover h-[100vh] sticky top-0 flex items-center justify-center">
           {imageUrl && resumeUrl && (
             <div className="animate-in fade-in duration-1000 gradient-border max-sm:m-0 h-[90%] max-w-xl:h-fit w-fit">
@@ -154,7 +151,6 @@ const Resume = () => {
           )}
         </section>
 
-        {/* Feedback Section */}
         <section className="feedback-section p-8">
           <h2 className="text-4xl !text-black font-bold mb-6">
             Resume Review - {candidateName}
@@ -163,11 +159,10 @@ const Resume = () => {
             <>
               <div className="flex flex-col gap-8 animate-in fade-in duration-1000">
                 <Summary feedback={feedback} />
-                <ATS score={feedback.ATS.score || 0} suggestions={feedback.ATS.tips || []} />
+                <ATS score={feedback.ATS?.score || 0} suggestions={feedback.ATS?.tips || []} />
                 <Details feedback={feedback} />
               </div>
 
-              {/* Export PDF */}
               <div className="mt-6">
                 <button
                   onClick={handleDownloadPDF}
