@@ -107,14 +107,22 @@ export default function Home() {
   const currentResumes = filteredResumes.slice(indexOfFirstResume, indexOfLastResume);
   const totalPages = Math.ceil(filteredResumes.length / resumesPerPage);
 
+  // ✅ Nouvelle fonction : bouton comparer
+  const handleCompareClick = () => {
+    const selectedResumes = resumes.slice(0, 2); // ⚡ Exemple: comparer les 2 premiers
+    if (selectedResumes.length < 2) {
+      alert("Sélectionnez au moins 2 CV pour comparer !");
+      return;
+    }
+    navigate("/compare", { state: { resumes: selectedResumes } });
+  };
+
   return (
     <main className="bg-[url('/images/bg-main.svg')] bg-cover min-h-screen">
       <Navbar />
 
       <section className="main-section">
         <div className="page-heading py-16 text-center">
-
-
           <h1 className="text-3xl font-bold">Track Your Best Candidates & Resume Ratings</h1>
           {!loadingResumes && resumes.length === 0 ? (
             <h2 className="mt-2 text-gray-600">
@@ -128,13 +136,10 @@ export default function Home() {
         </div>
 
         {/* 🔍 Zone de recherche */}
-        {/* 🔍 Zone de recherche modernisée */}
         <div className="flex flex-col md:flex-row gap-4 justify-center mb-10 px-4">
           {/* Recherche par nom */}
           <div className="relative w-full md:w-80">
-    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-      🔎
-    </span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔎</span>
             <input
               type="text"
               placeholder="Search by candidate name..."
@@ -149,9 +154,7 @@ export default function Home() {
 
           {/* Recherche par date */}
           <div className="relative w-full md:w-60">
-    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-      📅
-    </span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">📅</span>
             <input
               type="date"
               value={searchDate}
@@ -163,6 +166,18 @@ export default function Home() {
             />
           </div>
         </div>
+
+        {/* Bouton comparer */}
+        {!loadingResumes && resumes.length >= 2 && (
+          <div className="flex justify-center mb-6">
+            <button
+              onClick={handleCompareClick}
+              className="px-6 py-3 bg-green-600 text-white rounded-xl shadow hover:bg-green-700 transition font-semibold"
+            >
+              Compare Top Resumes
+            </button>
+          </div>
+        )}
 
         {loadingResumes && (
           <div className="flex flex-col items-center justify-center">
