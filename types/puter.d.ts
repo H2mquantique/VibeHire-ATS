@@ -17,6 +17,8 @@ interface FSItem {
 interface PuterUser {
   uuid: string;
   username: string;
+  role?: "Viewer" | "RH" | "Manager"; // <-- ajouter ici
+
 }
 
 interface KVItem {

@@ -14,6 +14,8 @@ interface Resume {
   resumePath: string;
   feedback: Feedback;
   issuedAt: string; // <-- nouvelle propriété pour la date d’émission
+  stage?: "received" | "preselection" | "test" | "interview" | "decision";
+
 }
 
 

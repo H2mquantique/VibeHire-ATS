@@ -7,5 +7,7 @@ export default [
   route('/resume/:id', 'routes/resume.tsx'),
   route('/wipe', 'routes/wipe.tsx'),
   route('/compare', 'routes/compare.tsx'),
+  route('/resumeComments', 'components/ResumeComments.tsx')
+
 
 ] satisfies RouteConfig;
