@@ -1,11 +1,10 @@
-// Home.tsx
 import type { Route } from "./+types/home";
 import Navbar from "../components/Navbar";
 import ResumeCard from "../components/ResumeCard";
 import { usePuterStore } from "../lib/puter";
 import { Link, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
-import type { Resume, KVItem, PuterUser } from "../../types";
+import type { Resume, KVItem } from "../../types";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -14,14 +13,18 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-// ✅ Type guard pour TS : vérifie si l'élément est bien un KVItem
+// Type guard TS
 function isKVItem(item: unknown): item is KVItem {
   return typeof item === "object" && item !== null && "value" in item;
 }
 
 export default function Home() {
-  const { auth, kv, fs, isLoading } = usePuterStore();
+  const user = usePuterStore((state) => state.auth.user);
+  const isAuthenticated = usePuterStore((state) => state.auth.isAuthenticated);
+  const kv = usePuterStore((state) => state.kv);
+  const isLoading = usePuterStore((state) => state.isLoading);
   const navigate = useNavigate();
+
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loadingResumes, setLoadingResumes] = useState(false);
 
@@ -29,16 +32,19 @@ export default function Home() {
   const [searchName, setSearchName] = useState("");
   const [searchDate, setSearchDate] = useState("");
   const [searchStage, setSearchStage] = useState("");
-
   const [currentPage, setCurrentPage] = useState(1);
   const resumesPerPage = 3;
 
-  // --- Chargement des CV ---
+  // --- Redirection si non authentifié ---
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) navigate("/auth?next=/");
+  }, [isLoading, isAuthenticated, navigate]);
+
+  // --- Charger les CV ---
   const loadResumes = async () => {
     setLoadingResumes(true);
     try {
       const list = (await kv.list("resume:*", true)) as (string | KVItem)[] | undefined;
-
       const parsed =
         list
           ?.map((item) => {
@@ -50,7 +56,6 @@ export default function Home() {
             }
           })
           .filter((r): r is Resume => r !== null) ?? [];
-
       setResumes(parsed);
       setCurrentPage(1);
     } finally {
@@ -58,29 +63,23 @@ export default function Home() {
     }
   };
 
-  // --- Redirection si non authentifié ---
+  // --- Rafraîchir CV après login ---
   useEffect(() => {
-    if (!isLoading && !auth.isAuthenticated) navigate("/auth?next=/");
-  }, [isLoading, auth.isAuthenticated, navigate]);
-
-  useEffect(() => {
-    if (auth.isAuthenticated) loadResumes();
-  }, [auth.isAuthenticated, kv]);
+    if (isAuthenticated) loadResumes();
+  }, [isAuthenticated, kv]);
 
   // --- Supprimer un CV ---
   const handleDeleteResume = async (id: string) => {
     if (!confirm("Supprimer ce CV ?")) return;
     const raw = await kv.get(`resume:${id}`);
-
     const data =
       raw && isKVItem(raw)
         ? (JSON.parse(raw.value) as Resume & { resumePath?: string; imagePath?: string })
         : null;
 
     await kv.set(`resume:${id}`, "");
-
-    if (data?.resumePath) await fs.delete(data.resumePath).catch(() => {});
-    if (data?.imagePath) await fs.delete(data.imagePath).catch(() => {});
+    if (data?.resumePath) await usePuterStore.getState().fs.delete(data.resumePath).catch(() => {});
+    if (data?.imagePath) await usePuterStore.getState().fs.delete(data.imagePath).catch(() => {});
 
     await loadResumes();
   };
@@ -102,27 +101,28 @@ export default function Home() {
   const currentResumes = filteredResumes.slice(indexOfFirstResume, indexOfLastResume);
   const totalPages = Math.ceil(filteredResumes.length / resumesPerPage);
 
+  // --- Logout propre ---
+  const handleLogout = async () => {
+    if (usePuterStore.getState().auth.signOut) {
+      await usePuterStore.getState().auth.signOut?.();
+    }
+    usePuterStore.setState({ auth: { ...usePuterStore.getState().auth, user: null, isAuthenticated: false } });
+    localStorage.removeItem("currentUser");
+    navigate("/auth?next=/");
+  };
+
   return (
     <main className="bg-[url('/images/bg-main.svg')] bg-cover min-h-screen">
-      {/* Navbar + Logout */}
       <div className="flex justify-between items-center px-6 pt-4">
         <Navbar />
-        {auth.isAuthenticated && (
+        {isAuthenticated && user && (
           <div className="flex items-center gap-4">
             <span className="text-gray-700 font-semibold bg-gray-100 px-3 py-1 rounded-full shadow-sm">
-              Role: <span className="text-blue-600">{auth.user?.role ?? "Viewer"}</span>
+              {user.username} - Role: <span className="text-blue-600">{user.role ?? "Viewer"}</span>
             </span>
             <button
               className="px-4 py-2 bg-red-600 text-white rounded-xl shadow hover:bg-red-700 transition"
-              onClick={() => {
-                if (auth.signOut) {
-                  auth.signOut();
-                } else {
-                  (auth as any).user = null as PuterUser | null;
-                  (auth as any).isAuthenticated = false;
-                  navigate("/auth?next=/");
-                }
-              }}
+              onClick={handleLogout}
             >
               Logout
             </button>
@@ -131,31 +131,20 @@ export default function Home() {
       </div>
 
       <section className="main-section">
+        {/* Page Heading */}
         <div className="page-heading py-16 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Track Your Best Candidates & Resume Ratings
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">Track Your Best Candidates & Resume Ratings</h1>
           {!loadingResumes && resumes.length === 0 ? (
-            <h2 className="mt-2 text-gray-600">
-              No resumes found. Upload your first resume to get feedback.
-            </h2>
+            <h2 className="mt-2 text-gray-600">No resumes found. Upload your first resume to get feedback.</h2>
           ) : (
-            <h2 className="mt-2 text-gray-600">
-              Review your applications and check AI-powered feedback.
-            </h2>
+            <h2 className="mt-2 text-gray-600">Review your applications and check AI-powered feedback.</h2>
           )}
 
           <div className="flex justify-center gap-4 mt-6 flex-wrap">
-            <Link
-              to="/upload"
-              className="px-5 py-3 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition"
-            >
+            <Link to="/upload" className="px-5 py-3 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition">
               Upload Resume
             </Link>
-            <Link
-              to="/compare"
-              className="px-5 py-3 bg-green-600 text-white rounded-xl shadow hover:bg-green-700 transition"
-            >
+            <Link to="/compare" className="px-5 py-3 bg-green-600 text-white rounded-xl shadow hover:bg-green-700 transition">
               Compare CVs
             </Link>
           </div>
@@ -169,10 +158,7 @@ export default function Home() {
               type="text"
               placeholder="Search by candidate name..."
               value={searchName}
-              onChange={(e) => {
-                setSearchName(e.target.value);
-                setCurrentPage(1);
-              }}
+              onChange={(e) => { setSearchName(e.target.value); setCurrentPage(1); }}
               className="w-full pl-10 pr-4 py-3 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-700"
             />
           </div>
@@ -182,10 +168,7 @@ export default function Home() {
             <input
               type="date"
               value={searchDate}
-              onChange={(e) => {
-                setSearchDate(e.target.value);
-                setCurrentPage(1);
-              }}
+              onChange={(e) => { setSearchDate(e.target.value); setCurrentPage(1); }}
               className="w-full pl-10 pr-4 py-3 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-700"
             />
           </div>
@@ -193,10 +176,7 @@ export default function Home() {
           <div className="relative w-full md:w-60">
             <select
               value={searchStage}
-              onChange={(e) => {
-                setSearchStage(e.target.value);
-                setCurrentPage(1);
-              }}
+              onChange={(e) => { setSearchStage(e.target.value); setCurrentPage(1); }}
               className="w-full pl-4 pr-4 py-3 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-700"
             >
               <option value="">All Stages</option>
@@ -237,21 +217,17 @@ export default function Home() {
               >
                 «
               </button>
-
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition shadow-sm ${
-                    page === currentPage
-                      ? "bg-blue-600 text-white shadow-md scale-105"
-                      : "bg-gray-100 text-gray-700 hover:bg-blue-500 hover:text-white"
+                    page === currentPage ? "bg-blue-600 text-white shadow-md scale-105" : "bg-gray-100 text-gray-700 hover:bg-blue-500 hover:text-white"
                   }`}
                 >
                   {page}
                 </button>
               ))}
-
               <button
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
