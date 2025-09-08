@@ -70,6 +70,12 @@ export default function Home() {
 
   // --- Supprimer un CV ---
   const handleDeleteResume = async (id: string) => {
+    const user = usePuterStore.getState().auth.user;
+    if (user?.role === "Viewer") {
+      alert("You do not have permission to delete resumes.");
+      return;
+    }
+
     if (!confirm("Supprimer ce CV ?")) return;
     const raw = await kv.get(`resume:${id}`);
     const data =

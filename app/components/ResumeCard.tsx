@@ -30,7 +30,9 @@ const ResumeCard = ({ resume, onDelete, reloadResumes }: Props) => {
 
   const { id, companyName, jobTitle, candidateName, feedback, imagePath, issuedAt } = resume;
 
+  // Permissions
   const canEditComments = auth.user?.role === "RH" || auth.user?.role === "Manager";
+  const canEditStage = auth.user?.role !== "Viewer";
 
   useEffect(() => {
     const loadImage = async () => {
@@ -46,6 +48,7 @@ const ResumeCard = ({ resume, onDelete, reloadResumes }: Props) => {
   }, [imagePath, fs]);
 
   const handleStageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (!canEditStage) return; // sécurité
     e.stopPropagation();
     const newStage = e.target.value as Resume["stage"];
     try {
@@ -153,7 +156,7 @@ const ResumeCard = ({ resume, onDelete, reloadResumes }: Props) => {
       <div className="p-4 flex flex-col gap-2">
         <div className="flex justify-between items-start">
           <h2 className="text-lg font-semibold text-gray-900">{candidateName}</h2>
-          {onDelete && (
+          {onDelete && canEditStage && (
             <button
               type="button"
               onClick={handleDeleteClick}
@@ -173,7 +176,10 @@ const ResumeCard = ({ resume, onDelete, reloadResumes }: Props) => {
           <select
             value={safeStage}
             onChange={handleStageChange}
-            className="w-full px-3 py-2 border rounded-lg text-sm bg-white cursor-pointer shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            disabled={!canEditStage}
+            className={`w-full px-3 py-2 border rounded-lg text-sm bg-white cursor-pointer shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+              !canEditStage ? "bg-gray-100 cursor-not-allowed text-gray-500" : ""
+            }`}
           >
             <option value="received">Received</option>
             <option value="preselection">Pre-selection</option>

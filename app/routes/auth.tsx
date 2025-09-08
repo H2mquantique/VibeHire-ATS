@@ -10,7 +10,7 @@ const Auth = () => {
 
   const [hydrated, setHydrated] = useState(false);
 
-  // --- Initialiser Puter.js et hydrater l'utilisateur depuis localStorage ---
+  // --- Initialiser Puter et hydrater l'utilisateur depuis localStorage ---
   useEffect(() => {
     const initPuter = async () => {
       const store = usePuterStore.getState();
@@ -19,12 +19,7 @@ const Auth = () => {
       const stored = localStorage.getItem("currentUser");
       if (stored) {
         const user = JSON.parse(stored);
-        // Utilise la méthode du store si elle existe
-        store.auth.setUser
-          ? store.auth.setUser(user)
-          : usePuterStore.setState({
-            auth: { ...store.auth, user, isAuthenticated: true },
-          });
+        store.auth.setUser(user);
       }
       setHydrated(true);
     };
@@ -36,40 +31,35 @@ const Auth = () => {
     if (hydrated && auth.isAuthenticated) navigate(next);
   }, [hydrated, auth.isAuthenticated, next, navigate]);
 
-  // --- Connexion fictive pour test uniquement si aucun user réel ---
-  const loginAs = (role: "RH" | "Manager" | "Viewer") => {
-    const stored = localStorage.getItem("currentUser");
-    const user = stored
-      ? JSON.parse(stored) // Utilise le vrai utilisateur si présent
-      : {
-        uuid: Math.random().toString(),
-        username: `Test ${role}`,
-        role,
-      };
+  // --- Connexion par rôle mais avec vrai nom de Puter ---
+  const loginAs = async (role: "RH" | "Manager" | "Viewer") => {
+    try {
+      // Authentifie l'utilisateur via Puter
+      await window.puter.auth.signIn();
 
-    const store = usePuterStore.getState();
-    store.auth.setUser
-      ? store.auth.setUser(user)
-      : usePuterStore.setState({
-        auth: { ...store.auth, user, isAuthenticated: true },
-      });
+      // Récupère le vrai utilisateur
+      const user = await window.puter.auth.getUser();
 
-    localStorage.setItem("currentUser", JSON.stringify(user));
-    navigate(next);
+      // Merge le rôle choisi avec le nom réel
+      const userWithRole = { ...user, role };
+
+      // Met à jour le store et localStorage
+      auth.setUser(userWithRole);
+      localStorage.setItem("currentUser", JSON.stringify(userWithRole));
+
+      navigate(next);
+    } catch (err) {
+      console.error("Erreur login:", err);
+    }
   };
 
   // --- Déconnexion ---
-  const handleLogout = () => {
-    const store = usePuterStore.getState();
-    if (auth.signOut) auth.signOut();
-    else
-      usePuterStore.setState({
-        auth: { ...auth, user: null, isAuthenticated: false },
-      });
+  const handleLogout = async () => {
+    await auth.signOut();
     localStorage.removeItem("currentUser");
   };
 
-  // --- Affichage seulement quand l'état est hydraté ---
+  // --- Affichage ---
   if (!hydrated || isLoading) {
     return (
       <main className="bg-[url('/images/bg-auth.svg')] bg-cover min-h-screen flex items-center justify-center px-4">
@@ -86,14 +76,16 @@ const Auth = () => {
         <section className="flex flex-col gap-8 bg-white rounded-2xl p-8 md:p-10">
           <div className="flex flex-col items-center gap-2 text-center">
             <h1 className="text-3xl font-bold">Welcome</h1>
-            <h2 className="text-gray-600 text-sm md:text-base">Log In to Continue</h2>
+            <h2 className="text-gray-600 text-sm md:text-base">
+              Log In to Continue
+            </h2>
           </div>
 
           {auth.isAuthenticated ? (
             <div className="flex flex-col gap-4">
               <span className="text-gray-700 font-semibold bg-gray-100 px-3 py-1 rounded-full shadow-sm">
                 {auth.user?.username} - Role:{" "}
-                <span className="text-blue-600">{auth.user?.role ?? "Viewer"}</span>
+                <span className="text-blue-600">{auth.user?.role}</span>
               </span>
               <button
                 className="auth-button bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl shadow w-full"
