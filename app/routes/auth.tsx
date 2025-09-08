@@ -31,22 +31,14 @@ const Auth = () => {
     if (hydrated && auth.isAuthenticated) navigate(next);
   }, [hydrated, auth.isAuthenticated, next, navigate]);
 
-  // --- Connexion par rôle mais avec vrai nom de Puter ---
+  // --- Connexion par rôle ---
   const loginAs = async (role: "RH" | "Manager" | "Viewer") => {
     try {
-      // Authentifie l'utilisateur via Puter
       await window.puter.auth.signIn();
-
-      // Récupère le vrai utilisateur
       const user = await window.puter.auth.getUser();
-
-      // Merge le rôle choisi avec le nom réel
       const userWithRole = { ...user, role };
-
-      // Met à jour le store et localStorage
       auth.setUser(userWithRole);
       localStorage.setItem("currentUser", JSON.stringify(userWithRole));
-
       navigate(next);
     } catch (err) {
       console.error("Erreur login:", err);
@@ -72,23 +64,26 @@ const Auth = () => {
 
   return (
     <main className="bg-[url('/images/bg-auth.svg')] bg-cover min-h-screen flex items-center justify-center px-4">
-      <div className="gradient-border shadow-lg w-full max-w-md">
-        <section className="flex flex-col gap-8 bg-white rounded-2xl p-8 md:p-10">
-          <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-3xl font-bold">Welcome</h1>
-            <h2 className="text-gray-600 text-sm md:text-base">
-              Log In to Continue
-            </h2>
+      <div className="shadow-2xl w-full max-w-md rounded-3xl bg-white p-8 md:p-10">
+        <section className="flex flex-col gap-8">
+          {/* Logo VibeHire */}
+          <div className="flex flex-col items-center gap-2">
+            <img src="/images/vibehire.png" alt="VibeHire Logo" className="w-32 md:w-75" />
+            <h1 className="text-3xl font-bold text-gray-900">Welcome</h1>
+            <p className="text-gray-500 text-sm md:text-base">
+              Log in to continue
+            </p>
           </div>
 
+          {/* Connexion / Déconnexion */}
           {auth.isAuthenticated ? (
             <div className="flex flex-col gap-4">
-              <span className="text-gray-700 font-semibold bg-gray-100 px-3 py-1 rounded-full shadow-sm">
+              <span className="text-gray-700 font-semibold bg-gray-100 px-3 py-1 rounded-full shadow-sm text-center">
                 {auth.user?.username} - Role:{" "}
                 <span className="text-blue-600">{auth.user?.role}</span>
               </span>
               <button
-                className="auth-button bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl shadow w-full"
+                className="auth-button bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl shadow w-full transition"
                 onClick={handleLogout}
               >
                 Log Out
@@ -97,19 +92,19 @@ const Auth = () => {
           ) : (
             <div className="flex flex-col gap-4 md:gap-5">
               <button
-                className="auth-button bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl shadow w-full transition"
+                className="auth-button bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl shadow w-full transition transform hover:-translate-y-1 hover:scale-105"
                 onClick={() => loginAs("RH")}
               >
                 Login as RH
               </button>
               <button
-                className="auth-button bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl shadow w-full transition"
+                className="auth-button bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl shadow w-full transition transform hover:-translate-y-1 hover:scale-105"
                 onClick={() => loginAs("Manager")}
               >
                 Login as Manager
               </button>
               <button
-                className="auth-button bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-xl shadow w-full transition"
+                className="auth-button bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-xl shadow w-full transition transform hover:-translate-y-1 hover:scale-105"
                 onClick={() => loginAs("Viewer")}
               >
                 Login as Viewer

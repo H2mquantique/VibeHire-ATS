@@ -4,7 +4,7 @@ import { usePuterStore } from "../lib/puter";
 import ResumeCard from "../components/ResumeCard";
 import { useNavigate } from "react-router";
 import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
-// ⚠️ Vite + CommonJS : on importe le défaut puis on destructure
+// ⚠️ Vite + CommonJS: import default then destructure
 import pkg from "file-saver";
 const { saveAs } = pkg;
 
@@ -56,7 +56,7 @@ const ComparePDF = ({ selected }: { selected: Resume[] }) => {
 
         <View style={pdfStyles.table}>
           <View style={pdfStyles.row}>
-            <Text style={[pdfStyles.th, pdfStyles.cellCategory]}>Catégorie</Text>
+            <Text style={[pdfStyles.th, pdfStyles.cellCategory]}>Category</Text>
             <Text style={[pdfStyles.th, pdfStyles.cellCandidate]}>{left.candidateName} (Overall {left.feedback.overallScore}/100)</Text>
             <Text style={[pdfStyles.th, pdfStyles.cellCandidate]}>{right.candidateName} (Overall {right.feedback.overallScore}/100)</Text>
           </View>
@@ -88,11 +88,11 @@ const ComparePDF = ({ selected }: { selected: Resume[] }) => {
           })}
         </View>
 
-        <Text style={pdfStyles.badge}>Poste : {left.jobTitle} — Entreprise : {left.companyName}</Text>
+        <Text style={pdfStyles.badge}>Position: {left.jobTitle} — Company: {left.companyName}</Text>
         {left && right && (
           <Text style={pdfStyles.recommend}>
-            Recommandation : {left.feedback.overallScore >= right.feedback.overallScore ? left.candidateName : right.candidateName} est le meilleur choix
-            (score global {Math.max(left.feedback.overallScore, right.feedback.overallScore)}/100).
+            Recommendation: {left.feedback.overallScore >= right.feedback.overallScore ? left.candidateName : right.candidateName} is the best choice
+            (overall score {Math.max(left.feedback.overallScore, right.feedback.overallScore)}/100).
           </Text>
         )}
       </Page>
@@ -128,7 +128,7 @@ export default function Compare() {
             .filter((r): r is Resume => r !== null) ?? [];
         setResumes(parsed);
       } catch (err) {
-        console.error("Erreur lors du chargement :", err);
+        console.error("Error while loading:", err);
       }
     };
     load();
@@ -141,12 +141,12 @@ export default function Compare() {
       if (prev.length === 1) {
         const first = prev[0];
         if (first.jobTitle !== resume.jobTitle || first.companyName !== resume.companyName) {
-          alert("Vous ne pouvez comparer que des CV pour le même poste ET la même entreprise.");
+          alert("You can only compare resumes for the same position AND the same company.");
           return prev;
         }
       }
       if (prev.length < 2) return [...prev, resume];
-      alert("Vous ne pouvez comparer que 2 CV à la fois.");
+      alert("You can only compare 2 resumes at a time.");
       return prev;
     });
   };
@@ -176,7 +176,7 @@ export default function Compare() {
           <p className="text-sm text-gray-500 mt-1">
             {selected[0]?.jobTitle && selected[0]?.companyName
               ? `${selected[0].jobTitle} @ ${selected[0].companyName}`
-              : "Choisissez des CV du même poste et de la même entreprise"}
+              : "Select resumes from the same position and company"}
           </p>
         </div>
         <div className="flex gap-2 md:gap-3">
@@ -184,7 +184,7 @@ export default function Compare() {
             onClick={() => navigate("/")}
             className="px-3 md:px-4 py-2 rounded-lg bg-white border hover:bg-gray-50 text-gray-800 shadow-sm"
           >
-            ← Retour
+            ← Back
           </button>
           <button
             onClick={handleDownloadPDF}
@@ -193,13 +193,13 @@ export default function Compare() {
               canExport ? "bg-green-600 hover:bg-green-700" : "bg-gray-300 cursor-not-allowed"
             }`}
           >
-            Exporter PDF
+            Export PDF
           </button>
         </div>
       </div>
 
       <div className="mb-4 rounded-xl border border-dashed border-cyan-300 bg-cyan-50 p-3 text-cyan-900 text-sm">
-        Astuce : cliquez sur deux cartes “résumé”. Vous ne pourrez sélectionner que des CV du <strong>même Job Title</strong> et de la <strong>même Company</strong>.
+        Tip: Click on two “resume” cards. You can only select resumes with the <strong>same Job Title</strong> and <strong>same Company</strong>.
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -227,7 +227,7 @@ export default function Compare() {
         })}
       </div>
 
-      {/* ✅ Pagination style Home page */}
+      {/* ✅ Pagination for Home page */}
       {totalPages > 1 && (
         <div className="pagination flex items-center justify-center gap-2 mt-8 flex-wrap">
           <button
@@ -276,7 +276,7 @@ export default function Compare() {
             <table className="w-full table-auto border-collapse rounded-xl overflow-hidden">
               <thead>
               <tr className="bg-gray-100 text-gray-700">
-                <th className="border border-gray-200 px-3 py-2 text-left w-1/4">Catégorie</th>
+                <th className="border border-gray-200 px-3 py-2 text-left w-1/4">Category</th>
                 {selected.map((r) => (
                   <th key={r.id} className="border border-gray-200 px-3 py-2 text-left">
                     {r.candidateName} <span className="text-gray-500">(Overall {r.feedback.overallScore}/100)</span>
@@ -295,7 +295,7 @@ export default function Compare() {
                     return (
                       <td key={r.id} className="border border-gray-200 px-3 py-2 bg-white">
                         <div className="font-semibold" style={{ color: getScoreColor(score) }}>
-                          Score&nbsp;: {score}/100
+                          Score: {score}/100
                         </div>
                         <ul className="mt-1 space-y-1 text-sm">
                           {tips.slice(0, 5).map((tip, idx) => (
@@ -319,9 +319,9 @@ export default function Compare() {
 
           {recommended && (
             <div className="mt-6 text-center bg-green-50 border border-green-200 p-4 rounded-xl">
-              <h3 className="text-lg md:text-xl font-bold mb-1 text-green-800">CV Recommandé</h3>
+              <h3 className="text-lg md:text-xl font-bold mb-1 text-green-800">Recommended Resume</h3>
               <p className="text-green-900">
-                <strong>{recommended.candidateName}</strong> est le meilleur choix pour le poste de <strong>{recommended.jobTitle}</strong> chez <strong>{recommended.companyName}</strong> (score global&nbsp;: {recommended.feedback.overallScore}/100)
+                <strong>{recommended.candidateName}</strong> is the best choice for the position of <strong>{recommended.jobTitle}</strong> at <strong>{recommended.companyName}</strong> (overall score: {recommended.feedback.overallScore}/100)
               </p>
             </div>
           )}
