@@ -1,10 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { usePuterStore } from "../lib/puter";
 import ResumeCard from "../components/ResumeCard";
 import { useNavigate } from "react-router";
 import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
-// ⚠️ Vite + CommonJS: import default then destructure
 import pkg from "file-saver";
 const { saveAs } = pkg;
 
@@ -13,6 +12,7 @@ type Tip = {
   tip: string;
   explanation?: string;
 };
+
 type CategoryBlock = { score: number; tips: Tip[] };
 type CategoryKey = "ATS" | "toneAndStyle" | "content" | "structure" | "skills";
 
@@ -26,14 +26,36 @@ const pdfStyles = StyleSheet.create({
   subtitle: { fontSize: 12, textAlign: "center", color: "#6b7280", marginBottom: 12 },
   table: { display: "flex", flexDirection: "column", borderWidth: 1, borderColor: "#e5e7eb" },
   row: { display: "flex", flexDirection: "row" },
-  th: { fontSize: 11, fontWeight: "bold", backgroundColor: "#f3f4f6", padding: 6, borderRightWidth: 1, borderColor: "#e5e7eb" },
+  th: {
+    fontSize: 11,
+    fontWeight: "bold",
+    backgroundColor: "#f3f4f6",
+    padding: 6,
+    borderRightWidth: 1,
+    borderColor: "#e5e7eb",
+  },
   td: { fontSize: 10, padding: 6, borderTopWidth: 1, borderRightWidth: 1, borderColor: "#e5e7eb" },
   cellCategory: { width: "28%" },
   cellCandidate: { width: "36%" },
   scoreText: { fontSize: 10, fontWeight: "bold" },
   tipLine: { fontSize: 9, marginTop: 2 },
-  badge: { fontSize: 11, fontWeight: "bold", padding: 6, backgroundColor: "#ecfeff", borderLeftWidth: 4, borderColor: "#06b6d4", marginTop: 14 },
-  recommend: { fontSize: 11, padding: 8, backgroundColor: "#e6ffed", borderLeftWidth: 4, borderColor: "#34d399", marginTop: 10 },
+  badge: {
+    fontSize: 11,
+    fontWeight: "bold",
+    padding: 6,
+    backgroundColor: "#ecfeff",
+    borderLeftWidth: 4,
+    borderColor: "#06b6d4",
+    marginTop: 14,
+  },
+  recommend: {
+    fontSize: 11,
+    padding: 8,
+    backgroundColor: "#e6ffed",
+    borderLeftWidth: 4,
+    borderColor: "#34d399",
+    marginTop: 10,
+  },
 });
 
 const ComparePDF = ({ selected }: { selected: Resume[] }) => {
@@ -57,8 +79,12 @@ const ComparePDF = ({ selected }: { selected: Resume[] }) => {
         <View style={pdfStyles.table}>
           <View style={pdfStyles.row}>
             <Text style={[pdfStyles.th, pdfStyles.cellCategory]}>Category</Text>
-            <Text style={[pdfStyles.th, pdfStyles.cellCandidate]}>{left.candidateName} (Overall {left.feedback.overallScore}/100)</Text>
-            <Text style={[pdfStyles.th, pdfStyles.cellCandidate]}>{right.candidateName} (Overall {right.feedback.overallScore}/100)</Text>
+            <Text style={[pdfStyles.th, pdfStyles.cellCandidate]}>
+              {left.candidateName} (Overall {left.feedback.overallScore}/100)
+            </Text>
+            <Text style={[pdfStyles.th, pdfStyles.cellCandidate]}>
+              {right.candidateName} (Overall {right.feedback.overallScore}/100)
+            </Text>
           </View>
 
           {categories.map((cat) => {
@@ -68,18 +94,24 @@ const ComparePDF = ({ selected }: { selected: Resume[] }) => {
               <View key={cat} style={pdfStyles.row}>
                 <Text style={[pdfStyles.td, pdfStyles.cellCategory]}>{cat}</Text>
                 <View style={[pdfStyles.td, pdfStyles.cellCandidate]}>
-                  <Text style={[pdfStyles.scoreText, { color: getScoreColor(l.score) }]}>{l.score}/100</Text>
+                  <Text style={[pdfStyles.scoreText, { color: getScoreColor(l.score) }]}>
+                    {l.score}/100
+                  </Text>
                   {l.tips.slice(0, 5).map((tip, idx) => (
                     <Text key={idx} style={pdfStyles.tipLine}>
-                      {tip.type === "good" ? "✔" : "⚠"} {tip.tip} {tip.explanation ? `(${tip.explanation})` : ""}
+                      {tip.type === "good" ? "✔" : "⚠"} {tip.tip}{" "}
+                      {tip.explanation ? `(${tip.explanation})` : ""}
                     </Text>
                   ))}
                 </View>
                 <View style={[pdfStyles.td, pdfStyles.cellCandidate]}>
-                  <Text style={[pdfStyles.scoreText, { color: getScoreColor(r.score) }]}>{r.score}/100</Text>
+                  <Text style={[pdfStyles.scoreText, { color: getScoreColor(r.score) }]}>
+                    {r.score}/100
+                  </Text>
                   {r.tips.slice(0, 5).map((tip, idx) => (
                     <Text key={idx} style={pdfStyles.tipLine}>
-                      {tip.type === "good" ? "✔" : "⚠"} {tip.tip} {tip.explanation ? `(${tip.explanation})` : ""}
+                      {tip.type === "good" ? "✔" : "⚠"} {tip.tip}{" "}
+                      {tip.explanation ? `(${tip.explanation})` : ""}
                     </Text>
                   ))}
                 </View>
@@ -88,11 +120,17 @@ const ComparePDF = ({ selected }: { selected: Resume[] }) => {
           })}
         </View>
 
-        <Text style={pdfStyles.badge}>Position: {left.jobTitle} — Company: {left.companyName}</Text>
+        <Text style={pdfStyles.badge}>
+          Position: {left.jobTitle} — Company: {left.companyName}
+        </Text>
         {left && right && (
           <Text style={pdfStyles.recommend}>
-            Recommendation: {left.feedback.overallScore >= right.feedback.overallScore ? left.candidateName : right.candidateName} is the best choice
-            (overall score {Math.max(left.feedback.overallScore, right.feedback.overallScore)}/100).
+            Recommendation:{" "}
+            {left.feedback.overallScore >= right.feedback.overallScore
+              ? left.candidateName
+              : right.candidateName}{" "}
+            is the best choice (overall score{" "}
+            {Math.max(left.feedback.overallScore, right.feedback.overallScore)}/100).
           </Text>
         )}
       </Page>
@@ -153,7 +191,10 @@ export default function Compare() {
 
   useEffect(() => {
     if (selected.length === 2) {
-      const best = selected[0].feedback.overallScore >= selected[1].feedback.overallScore ? selected[0] : selected[1];
+      const best =
+        selected[0].feedback.overallScore >= selected[1].feedback.overallScore
+          ? selected[0]
+          : selected[1];
       setRecommended(best);
     } else {
       setRecommended(null);
@@ -199,9 +240,11 @@ export default function Compare() {
       </div>
 
       <div className="mb-4 rounded-xl border border-dashed border-cyan-300 bg-cyan-50 p-3 text-cyan-900 text-sm">
-        Tip: Click on two “resume” cards. You can only select resumes with the <strong>same Job Title</strong> and <strong>same Company</strong>.
+        💡 Tip: Select two resumes with the <strong>same Job Title</strong> and{" "}
+        <strong>same Company</strong>.
       </div>
 
+      {/* Resume Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {paginatedResumes.map((resume) => {
           const isSelected = selected.some((r) => r.id === resume.id);
@@ -211,14 +254,30 @@ export default function Compare() {
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.25 }}
-              className={`relative rounded-2xl border-4 ${
-                isSelected ? "border-blue-500" : "border-transparent"
+              className={`relative rounded-2xl border-2 ${
+                isSelected ? "border-blue-500 shadow-lg" : "border-gray-200"
               } hover:shadow-lg cursor-pointer bg-white`}
               onClick={() => toggleSelect(resume)}
             >
+              {/* ✅ Icône de sélection */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleSelect(resume);
+                }}
+                className={`absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-full border-2 transition ${
+                  isSelected
+                    ? "bg-blue-600 border-blue-600 text-white"
+                    : "bg-white border-gray-300 text-transparent"
+                }`}
+              >
+                ✓
+              </button>
+
               <ResumeCard resume={resume} />
+
               {isSelected && (
-                <span className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded-full text-xs shadow">
+                <span className="absolute bottom-2 left-2 bg-blue-600 text-white px-2 py-1 rounded-full text-xs shadow">
                   Selected
                 </span>
               )}
@@ -227,7 +286,7 @@ export default function Compare() {
         })}
       </div>
 
-      {/* ✅ Pagination for Home page */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="pagination flex items-center justify-center gap-2 mt-8 flex-wrap">
           <button
@@ -262,16 +321,26 @@ export default function Compare() {
         </div>
       )}
 
+      {/* Comparison Block */}
       {selected.length === 2 && (
         <>
-          <div className="mt-10 flex flex-col items-center gap-4">
-            <div className="flex items-center gap-4">
+          <div className="mt-10 flex justify-center gap-6 w-full overflow-x-auto px-2">
+            {/* Left Card */}
+            <div className="min-w-[300px] max-w-md">
               <ResumeCard resume={selected[0]} />
-              <span className="font-bold text-xl text-gray-700">VS</span>
+            </div>
+
+            {/* VS */}
+            <span className="font-bold text-xl text-gray-700 self-center flex-shrink-0">VS</span>
+
+            {/* Right Card */}
+            <div className="min-w-[300px] max-w-md">
               <ResumeCard resume={selected[1]} />
             </div>
           </div>
 
+
+          {/* Comparison Table */}
           <div className="mt-8 overflow-x-auto">
             <table className="w-full table-auto border-collapse rounded-xl overflow-hidden">
               <thead>
@@ -289,7 +358,7 @@ export default function Compare() {
                 <tr key={cat} className="border-t border-gray-200 align-top">
                   <td className="border border-gray-200 px-3 py-2 font-medium bg-white">{cat}</td>
                   {selected.map((r) => {
-                    const block = r.feedback[cat] as unknown as CategoryBlock | number | undefined;
+                    const block = r.feedback[cat] as CategoryBlock | number | undefined;
                     const score = typeof block === "number" ? block : block?.score ?? 0;
                     const tips: Tip[] = typeof block === "number" ? [] : (block?.tips as Tip[]) ?? [];
                     return (
@@ -302,8 +371,8 @@ export default function Compare() {
                             <li key={idx} className="flex gap-1">
                               <span className="shrink-0">{tip.type === "good" ? "✔" : "⚠"}</span>
                               <span>
-                                  {tip.tip} {tip.explanation && <em className="text-gray-500">({tip.explanation})</em>}
-                                </span>
+                            {tip.tip} {tip.explanation && <em className="text-gray-500">({tip.explanation})</em>}
+                          </span>
                             </li>
                           ))}
                           {tips.length === 0 && <li className="text-gray-400 italic">No tips</li>}
@@ -321,7 +390,9 @@ export default function Compare() {
             <div className="mt-6 text-center bg-green-50 border border-green-200 p-4 rounded-xl">
               <h3 className="text-lg md:text-xl font-bold mb-1 text-green-800">Recommended Resume</h3>
               <p className="text-green-900">
-                <strong>{recommended.candidateName}</strong> is the best choice for the position of <strong>{recommended.jobTitle}</strong> at <strong>{recommended.companyName}</strong> (overall score: {recommended.feedback.overallScore}/100)
+                <strong>{recommended.candidateName}</strong> is the best choice for the position of{" "}
+                <strong>{recommended.jobTitle}</strong> at <strong>{recommended.companyName}</strong> (Overall Score:{" "}
+                {recommended.feedback.overallScore}/100)
               </p>
             </div>
           )}

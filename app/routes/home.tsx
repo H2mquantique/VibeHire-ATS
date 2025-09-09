@@ -5,6 +5,7 @@ import { usePuterStore } from "../lib/puter";
 import { Link, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import type { Resume, KVItem } from "../../types";
+import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline"; // <-- icône moderne
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -127,10 +128,11 @@ export default function Home() {
               {user.username} - Role: <span className="text-blue-600">{user.role ?? "Viewer"}</span>
             </span>
             <button
-              className="px-4 py-2 bg-red-600 text-white rounded-xl shadow hover:bg-red-700 transition"
               onClick={handleLogout}
+              className="p-2 rounded-xl bg-red-600 text-white hover:bg-red-700 transition flex items-center justify-center"
+              title="Logout"
             >
-              Logout
+              <ArrowRightOnRectangleIcon className="w-6 h-6" />
             </button>
           </div>
         )}
