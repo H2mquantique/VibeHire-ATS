@@ -1,10 +1,10 @@
 import { defineConfig } from "vite";
-import { reactRouter } from "@react-router/dev/vite";
+import react from "@vitejs/plugin-react"; // ← Assure-toi que le nom ici correspond à l'import
 import tsconfigPaths from "vite-tsconfig-paths";
 import * as path from "node:path";
 
 export default defineConfig({
-  plugins: [reactRouter(), tsconfigPaths()],
+  plugins: [react(), tsconfigPaths()],
   resolve: {
     alias: {
       "~": path.resolve(__dirname, "app"),
