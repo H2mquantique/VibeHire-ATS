@@ -4,6 +4,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import * as path from "node:path";
 
 export default defineConfig({
+  base: "./", // essentiel pour Vercel
   plugins: [react(), tsconfigPaths()],
   resolve: {
     alias: {
@@ -11,6 +12,6 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "dist", // ← obligatoire pour Vercel
+    outDir: "dist", // obligatoire pour Vercel
   },
 });
