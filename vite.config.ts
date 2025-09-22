@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react"; // ← Assure-toi que le nom ici correspond à l'import
+import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 import * as path from "node:path";
 
@@ -9,5 +9,8 @@ export default defineConfig({
     alias: {
       "~": path.resolve(__dirname, "app"),
     },
+  },
+  build: {
+    outDir: "dist", // ← obligatoire pour Vercel
   },
 });
