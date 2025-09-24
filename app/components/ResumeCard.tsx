@@ -1,7 +1,7 @@
 import ScoreCircle from "../components/ScoreCircle";
 import { useEffect, useState, memo } from "react";
 import { usePuterStore } from "~/lib/puter";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Trash2 } from "lucide-react";
 import { Link } from "react-router";
 import type { Resume, Comment } from "../../types";
 
@@ -31,8 +31,10 @@ const ResumeCard = memo(({ resume, onDelete, reloadResumes }: Props) => {
 
   const { id, companyName, jobTitle, candidateName, feedback, imagePath, issuedAt } = resume;
 
+  // --- Permissions basées sur le rôle ---
   const canEditComments = user?.role === "RH" || user?.role === "Manager";
   const canEditStage = user?.role !== "Viewer";
+  const canDeleteResume = user?.role === "RH" || user?.role === "Manager";
 
   useEffect(() => {
     if (!imagePath) {
@@ -83,6 +85,18 @@ const ResumeCard = memo(({ resume, onDelete, reloadResumes }: Props) => {
 
   return (
     <div className="relative flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition w-full max-w-sm sm:max-w-md lg:max-w-lg h-full">
+
+      {/* Bouton de suppression */}
+      {onDelete && canDeleteResume && (
+        <button
+          onClick={onDelete}
+          className="absolute top-3 right-3 p-1 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition"
+          title="Delete Resume"
+        >
+          <Trash2 size={18} />
+        </button>
+      )}
+
       {/* Image */}
       {imageUrl && (
         <Link to={`/resume/${id}`} className="block">
